@@ -1,0 +1,53 @@
+# Install necessary packages (if they are not installed yet)
+install.packages("plotly")
+install.packages("dplyr")
+
+# Load necessary libraries
+library(plotly)
+library(dplyr)
+
+# Load the IMDB dataset (adjust path to your dataset)
+# Use base R read.csv to load the dataset
+imdb_data <- read.csv("/Users/vaishnavidevi/Downloads/imdb_dataset.csv")  # Adjust the filename as necessary
+
+# Check if the dataset is loaded correctly
+head(imdb_data)
+
+# Filter the top 100 movies by rating
+top_100_movies <- imdb_data %>%
+  filter(!is.na(rating)) %>%
+  arrange(desc(rating)) %>%
+  head(100)
+
+# Create a bar chart: Top directors by the number of high-rated movies
+director_counts <- top_100_movies %>%
+  group_by(director) %>%
+  summarise(movie_count = n()) %>%
+  arrange(desc(movie_count)) %>%
+  head(10)
+
+bar_chart <- plot_ly(director_counts, x = ~director, y = ~movie_count, type = 'bar', 
+                    name = 'Directors', 
+                    marker = list(color = 'rgba(0,123,255,0.7)')) %>%
+  layout(title = "Top Directors by Number of High-Rated Movies",
+         xaxis = list(title = 'Director'),
+         yaxis = list(title = 'Number of Movies'))
+
+# Create a scatter plot: Rating vs. Year
+scatter_plot <- plot_ly(top_100_movies, x = ~year, y = ~rating, type = 'scatter', mode = 'markers', 
+                        marker = list(color = 'rgba(255,99,71,0.7)', size = 10)) %>%
+  layout(title = "Rating vs. Year",
+         xaxis = list(title = 'Year'),
+         yaxis = list(title = 'Rating'))
+
+# Create a histogram: Distribution of Movie Ratings
+histogram <- plot_ly(top_100_movies, x = ~rating, type = 'histogram', nbinsx = 20,
+                     marker = list(color = 'rgba(0,255,0,0.7)')) %>%
+  layout(title = "Distribution of Movie Ratings",
+         xaxis = list(title = 'Rating'),
+         yaxis = list(title = 'Frequency'))
+
+# Combine the charts into a single dashboard (side by side)
+subplot(bar_chart, scatter_plot, histogram, nrows = 1, shareX = TRUE, shareY = TRUE) %>%
+  layout(title = "IMDB Movie Ratings Dashboard",
+         showlegend = FALSE)
